@@ -311,6 +311,9 @@ def require_roles(*roles, scope: dict | None = None):
 	# a housekeeping supervisor can do everything an attendant can
 	if "Housekeeping" in allowed:
 		allowed.add("Housekeeping Supervisor")
+	# and a maintenance supervisor everything a technician can
+	if "Maintenance" in allowed:
+		allowed.add("Maintenance Supervisor")
 
 	def deco(fn):
 		@wraps(fn)

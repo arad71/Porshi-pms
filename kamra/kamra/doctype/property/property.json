@@ -825,6 +825,20 @@
    "report": 1,
    "print": 1,
    "role": "F&B Manager"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Maintenance"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Maintenance Supervisor"
   }
  ],
  "row_format": "Dynamic",

@@ -24,6 +24,7 @@ MODULE_ROLES = {
 	"front-desk": {"Front Desk", "Night Auditor"},
 	"housekeeping": {"Housekeeping", "Housekeeping Supervisor", "Front Desk"},
 	"operations": {"Front Desk"},
+	"maintenance": {"Maintenance", "Maintenance Supervisor", "Front Desk"},
 	"fnb": {"Front Desk", "Finance", "F&B Manager"},
 	"events": {"Front Desk", "Revenue Manager"},
 	"finance": {"Finance", "Front Desk", "Night Auditor"},
@@ -31,7 +32,7 @@ MODULE_ROLES = {
 }
 
 STAFF = ("Front Desk", "Night Auditor", "Housekeeping", "Housekeeping Supervisor",
-         "Finance", "F&B Manager", "Revenue Manager")
+         "Finance", "F&B Manager", "Revenue Manager", "Maintenance", "Maintenance Supervisor")
 
 
 def record(property: str | None, module: str, subject: str, *,
@@ -151,6 +152,24 @@ def on_service_ticket_update(doc, method=None):
 		return
 	record(doc.property, "operations", f"Request resolved: {doc.subject}{_room(doc)}",
 	       doctype=doc.doctype, name=doc.name, route="/tickets")
+
+
+def on_work_order_insert(doc, method=None):
+	kind = {"Emergency": "EMERGENCY", "Preventive": "Planned job", "Predictive": "Meter due",
+	        "Condition-based": "Asset condition", "Statutory": "Statutory job",
+	        "Guest Room PM": "Room PM", "Routine": "Routine job",
+	        "Inspection": "Inspection", "Seasonal": "Seasonal job"}.get(doc.work_type, "New work order")
+	where = _room(doc) or (f" - {doc.location}" if doc.get("location") else "")
+	record(doc.property, "maintenance", f"{kind}: {doc.subject}{where}",
+	       doctype=doc.doctype, name=doc.name, route="/maintenance")
+
+
+def on_work_order_update(doc, method=None):
+	before = doc.get_doc_before_save()
+	if not before or before.status == doc.status or doc.status != "Completed":
+		return
+	record(doc.property, "maintenance", f"Work order done: {doc.subject}{_room(doc)}",
+	       doctype=doc.doctype, name=doc.name, route="/maintenance")
 
 
 def on_housekeeping_task_update(doc, method=None):

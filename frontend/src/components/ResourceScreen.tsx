@@ -433,6 +433,10 @@ const BADGE_TONES: Record<string, "green" | "sky" | "amber" | "rose" | "zinc"> =
   Open: "amber", Closed: "zinc", Enquiry: "amber", Completed: "zinc",
   Clean: "green", Dirty: "amber", Inspected: "sky", "Out of Order": "rose",
   "In Progress": "sky", Done: "green",
+  // maintenance
+  "On Hold": "amber", Urgent: "rose", High: "amber", Emergency: "rose",
+  "Under Repair": "amber", "Out of Service": "rose", Retired: "zinc", "In Service": "green",
+  Good: "green", Fair: "sky", Poor: "amber", Critical: "rose",
 }
 
 const cellValue = (v: unknown, t: (s: string) => string = translate) =>

@@ -26,6 +26,7 @@ GROUP_MODULE: dict[str, str | None] = {
 	"Groups": "front-desk",
 	"Banquets": "events",
 	"Housekeeping": "housekeeping",
+	"Maintenance": "maintenance",
 	"F&B": "fnb",
 	"Laundry": "fnb",
 	"Channels": "booking-engine",
@@ -2334,6 +2335,92 @@ TOOLS: tuple[ToolSpec, ...] = (
 		mutating=True,
 		group="Billing",
 		module="",
+	),
+	_t(
+		"maintenance_board",
+		"maintenance.work_orders_list",
+		"""Maintenance work orders. view: open (default), mine, unassigned,
+		overdue, completed, all. Filter by room number, category (HVAC,
+		Plumbing, Electrical, Elevator, Kitchen Equipment, ...) or work_type.""",
+		{
+			"view": _p("string"),
+			"work_type": _p("string"),
+			"room": _p("string"),
+			"category": _p("string"),
+		},
+		property=True,
+		group="Maintenance",
+	),
+	_t(
+		"maintenance_summary",
+		"maintenance.maintenance_summary",
+		"""Maintenance at a glance: open, overdue and unassigned work orders,
+		rooms out of order, planned jobs due this week and cost this month.""",
+		{},
+		property=True,
+		group="Maintenance",
+	),
+	_t(
+		"create_work_order",
+		"maintenance.create_work_order",
+		"""Raise a maintenance work order. work_type: Corrective (default, a
+		fault), Emergency (breakdown, always Urgent), Inspection, Statutory,
+		Routine, Guest Room PM, Seasonal, Improvement (Preventive, Predictive
+		and Condition-based usually come from schedules and readings).
+		Priority (Low, Medium, High, Urgent) sets the deadline.
+		take_room_out_of_order stops the room selling until the order is
+		completed - only for a vacant room, and confirm with the user first.""",
+		{
+			"subject": _p("string"),
+			"work_type": _p("string"),
+			"category": _p("string"),
+			"priority": _p("string"),
+			"room": _p("string"),
+			"location": _p("string"),
+			"description": _p("string"),
+			"take_room_out_of_order": _p("boolean"),
+		},
+		required=("subject",),
+		property=True,
+		mutating=True,
+		bools=("take_room_out_of_order",),
+		group="Maintenance",
+	),
+	_t(
+		"update_work_order",
+		"maintenance.set_work_order_status",
+		"""Move a work order along: In Progress, On Hold, Completed,
+		Cancelled, or back to Open. Completing needs a note of what was done;
+		labour and parts costs are optional.""",
+		{
+			"work_order": _p("string"),
+			"status": _p("string"),
+			"note": _p("string"),
+			"labour_hours": _p("number"),
+			"labour_cost": _p("number"),
+			"parts_cost": _p("number"),
+			"vendor_cost": _p("number"),
+		},
+		required=("work_order", "status"),
+		mutating=True,
+		group="Maintenance",
+	),
+	_t(
+		"record_asset_reading",
+		"maintenance.record_asset_reading",
+		"""Record an asset's meter reading (run hours, cycles...) and/or its
+		condition (Good, Fair, Poor, Critical). A reading past a meter
+		schedule raises a predictive work order; Poor or Critical raises a
+		condition-based one.""",
+		{
+			"asset": _p("string"),
+			"reading": _p("number"),
+			"condition": _p("string"),
+			"note": _p("string"),
+		},
+		required=("asset",),
+		mutating=True,
+		group="Maintenance",
 	),
 )
 

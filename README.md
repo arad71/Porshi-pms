@@ -55,6 +55,12 @@ On the [demo](https://demo.kamrapms.com), tap any role to sign in. The guest boo
 - End of Day (night audit) wizard that checks blockers, posts the nights and saves an audit pack; it also runs by itself at 03:00.
 - Accounts receivable with company accounts, statements and aging, plus accounts payable, P&amp;L and balance sheet.
 
+**Maintenance**
+- Work orders for every kind of maintenance: corrective, emergency, preventive, predictive, condition-based, routine, inspection, statutory, guest-room PM, seasonal and improvement.
+- A work order can take its room out of order until it is done, then hands it to housekeeping as Dirty; maintenance guest requests become work orders and are resolved by them.
+- Asset register with meter readings and condition: a reading past a meter schedule or an asset found in poor condition raises the work by itself.
+- Planned maintenance by calendar or by meter, statutory jobs that need a certificate to close, and labour, parts and vendor cost per job.
+
 **F&amp;B and banquets**
 - Restaurant POS with a table map, room charges to the folio, kitchen display and network kitchen printers.
 - Kitchen stock and recipes that move when an order is sent.
@@ -72,7 +78,7 @@ On the [demo](https://demo.kamrapms.com), tap any role to sign in. The guest boo
 
 **AI and MCP**
 - Kamra Agent, the in-app assistant, with action cards to check in, collect or open a folio.
-- 161 MCP tools for Claude, ChatGPT or any MCP client. See [Run your hotel with AI](#run-your-hotel-with-ai).
+- 166 MCP tools for Claude, ChatGPT or any MCP client. See [Run your hotel with AI](#run-your-hotel-with-ai).
 
 The staff UI is in English, Spanish, Arabic and Portuguese (Brazil). Module by module, with screenshots: [Features](https://kamrapms.com/docs/features).
 

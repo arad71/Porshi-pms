@@ -12,7 +12,17 @@ const HkTaskMediaPanel = lazy(() =>
   import("../components/HkMedia").then((m) => ({ default: m.HkTaskMediaPanel })),
 )
 const ReservationDetail = lazy(() => import("./ReservationDetail"))
+const WorkOrderPanel = lazy(() =>
+  import("../components/MaintenancePanels").then((m) => ({ default: m.WorkOrderPanel })),
+)
+const AssetPanel = lazy(() =>
+  import("../components/MaintenancePanels").then((m) => ({ default: m.AssetPanel })),
+)
+const SchedulePanel = lazy(() =>
+  import("../components/MaintenancePanels").then((m) => ({ default: m.SchedulePanel })),
+)
 import { cur, locale, sellsAlcohol } from "../lib/money"
+import { MAINTENANCE_CATEGORIES, PLANNED_TYPES, WORK_TYPES } from "../lib/maintenance"
 
 export const floorsConfig: ScreenConfig = {
   doctype: "Floor",
@@ -1005,4 +1015,171 @@ export const transactionCodesConfig: ScreenConfig = {
     { field: "disabled", label: "Disabled", type: "check",
       hint: "Turn off instead of deleting when the journal already posted it." },
   ],
+}
+
+/* ---------------------------------------------------------------- maintenance
+   Every kind of maintenance is a work order with a type. Faults, emergencies
+   and projects are raised by hand; the planned kinds come from schedules
+   (calendar or meter) and condition-based ones from an asset's condition. */
+
+const WO_STATUSES = ["Open", "In Progress", "On Hold", "Completed", "Cancelled"]
+const PRIORITIES = ["Low", "Medium", "High", "Urgent"]
+
+export const workOrdersConfig: ScreenConfig = {
+  doctype: "Maintenance Work Order",
+  title: "Work Orders",
+  description:
+    "Every maintenance job: faults, emergencies, planned and statutory work. A work order can take its room out of order until it is completed.",
+  propertyScoped: true,
+  pageSize: 25,
+  orderBy: "due_by asc",
+  searchFields: ["subject", "name", "room", "location"],
+  filters: [
+    { field: "status", label: "Status", options: WO_STATUSES },
+    { field: "work_type", label: "Type", options: WORK_TYPES },
+    { field: "priority", label: "Priority", options: PRIORITIES },
+    { field: "category", label: "Category", options: MAINTENANCE_CATEGORIES },
+  ],
+  dateFilter: { field: "due_by", label: "Due" },
+  columns: [
+    { field: "name", label: "Order" },
+    { field: "subject", label: "Job" },
+    { field: "work_type", label: "Type", badge: true },
+    { field: "room", label: "Room" },
+    { field: "priority", label: "Priority", badge: true },
+    { field: "status", label: "Status", badge: true },
+    { field: "due_by", label: "Due" },
+    { field: "assigned_to_user", label: "Assigned to" },
+  ],
+  form: [
+    { field: "subject", label: "What needs doing", type: "data", required: true },
+    { field: "work_type", label: "Type", type: "select", options: WORK_TYPES,
+      hint: "Emergency is always urgent. Statutory needs a certificate number to complete." },
+    { field: "category", label: "Category", type: "select", options: MAINTENANCE_CATEGORIES },
+    { field: "priority", label: "Priority", type: "select", options: PRIORITIES,
+      hint: "Sets the deadline (Settings > Maintenance)." },
+    { field: "status", label: "Status", type: "select", options: WO_STATUSES },
+    { field: "room", label: "Room", type: "link", linkDoctype: "Room", linkPropertyScoped: true },
+    { field: "asset", label: "Asset", type: "link", linkDoctype: "Maintenance Asset", linkPropertyScoped: true },
+    { field: "location", label: "Location (public areas)", type: "data" },
+    { field: "take_room_out_of_order", label: "Take room out of order", type: "check",
+      hint: "The room won't sell while this is open, and goes to Dirty when it is completed.",
+      dependsOn: (d) => !!d.room },
+    { field: "assigned_to_user", label: "Assigned to", type: "link", linkDoctype: "User" },
+    { field: "vendor", label: "Vendor (contractor)", type: "link", linkDoctype: "Vendor", linkPropertyScoped: true },
+    { field: "description", label: "Description", type: "data" },
+    { field: "resolution_note", label: "What was done", type: "data" },
+    { field: "certificate_ref", label: "Certificate / report no.", type: "data",
+      dependsOn: (d) => d.work_type === "Statutory" || d.work_type === "Inspection" },
+    { field: "certificate_expiry", label: "Certificate valid until", type: "date",
+      dependsOn: (d) => d.work_type === "Statutory" || d.work_type === "Inspection" },
+    { field: "meter_reading", label: "Meter reading at service", type: "float", dependsOn: (d) => !!d.asset },
+    { field: "labour_hours", label: "Labour hours", type: "float" },
+    { field: "labour_cost", label: "Labour cost", type: "currency" },
+    { field: "parts_cost", label: "Parts cost", type: "currency" },
+    { field: "vendor_cost", label: "Vendor cost", type: "currency" },
+    { field: "total_cost", label: "Total cost", type: "readonly" },
+  ],
+  extra: WorkOrderPanel,
+}
+
+export const maintenanceAssetsConfig: ScreenConfig = {
+  doctype: "Maintenance Asset",
+  title: "Assets",
+  description:
+    "Equipment and plant the engineering team looks after. Record a meter reading or condition to raise predictive and condition-based work.",
+  propertyScoped: true,
+  pageSize: 25,
+  orderBy: "asset_name asc",
+  searchFields: ["asset_name", "name", "serial_no", "location"],
+  filters: [
+    { field: "category", label: "Category", options: MAINTENANCE_CATEGORIES },
+    { field: "status", label: "Status", options: ["In Service", "Under Repair", "Out of Service", "Retired"] },
+    { field: "condition", label: "Condition", options: ["Good", "Fair", "Poor", "Critical"] },
+  ],
+  columns: [
+    { field: "name", label: "Asset no." },
+    { field: "asset_name", label: "Asset" },
+    { field: "category", label: "Category" },
+    { field: "location", label: "Location" },
+    { field: "condition", label: "Condition", badge: true },
+    { field: "status", label: "Status", badge: true },
+    { field: "last_serviced_on", label: "Last serviced" },
+  ],
+  form: [
+    { field: "asset_name", label: "Asset", type: "data", required: true,
+      hint: "What the engineer calls it, e.g. Chiller 1, Lift A, Room 204 split AC." },
+    { field: "category", label: "Category", type: "select", options: MAINTENANCE_CATEGORIES },
+    { field: "status", label: "Status", type: "select", options: ["In Service", "Under Repair", "Out of Service", "Retired"] },
+    { field: "room", label: "Room", type: "link", linkDoctype: "Room", linkPropertyScoped: true },
+    { field: "location", label: "Location", type: "data" },
+    { field: "floor", label: "Floor", type: "select", source: floorSource },
+    { field: "make", label: "Make", type: "data" },
+    { field: "model", label: "Model", type: "data" },
+    { field: "serial_no", label: "Serial no.", type: "data" },
+    { field: "vendor", label: "Service vendor", type: "link", linkDoctype: "Vendor", linkPropertyScoped: true },
+    { field: "install_date", label: "Installed on", type: "date" },
+    { field: "warranty_until", label: "Warranty until", type: "date" },
+    { field: "meter_unit", label: "Meter", type: "select",
+      options: ["", "Run Hours", "Cycles", "Kilometres", "kWh", "Litres", "Starts", "Other"],
+      hint: "What predictive schedules count, e.g. a generator's run hours." },
+    { field: "notes", label: "Notes", type: "data" },
+  ],
+  extra: AssetPanel,
+}
+
+export const maintenanceSchedulesConfig: ScreenConfig = {
+  doctype: "Maintenance Schedule",
+  title: "Planned Maintenance",
+  description:
+    "Preventive, predictive, routine, inspection, statutory, guest-room and seasonal work. Each schedule raises a work order when it falls due, by date or by meter reading.",
+  propertyScoped: true,
+  pageSize: 25,
+  orderBy: "next_due_date asc",
+  searchFields: ["title", "name"],
+  filters: [
+    { field: "work_type", label: "Type", options: PLANNED_TYPES },
+    { field: "trigger", label: "Due by", options: ["Calendar", "Meter Reading"] },
+    { field: "category", label: "Category", options: MAINTENANCE_CATEGORIES },
+  ],
+  columns: [
+    { field: "title", label: "Job" },
+    { field: "work_type", label: "Type", badge: true },
+    { field: "frequency", label: "Cycle" },
+    { field: "next_due_date", label: "Next due" },
+    { field: "next_meter_due", label: "Next at reading" },
+    { field: "active", label: "Status", statusCheck: true },
+  ],
+  form: [
+    { field: "title", label: "Job", type: "data", required: true,
+      hint: "Becomes the work order subject, e.g. Clean AC filters - 2nd floor." },
+    { field: "work_type", label: "Type", type: "select", options: PLANNED_TYPES },
+    { field: "category", label: "Category", type: "select", options: MAINTENANCE_CATEGORIES },
+    { field: "asset", label: "Asset", type: "link", linkDoctype: "Maintenance Asset", linkPropertyScoped: true },
+    { field: "room", label: "Room", type: "link", linkDoctype: "Room", linkPropertyScoped: true },
+    { field: "location", label: "Location", type: "data" },
+    { field: "trigger", label: "Due by", type: "select", options: ["Calendar", "Meter Reading"],
+      hint: "Meter Reading needs an asset with a meter; it is checked whenever a reading is recorded." },
+    { field: "frequency", label: "Every", type: "select",
+      options: ["Daily", "Weekly", "Monthly", "Quarterly", "Half-yearly", "Yearly"],
+      dependsOn: (d) => d.trigger !== "Meter Reading" },
+    { field: "every", label: "Repeat every (periods)", type: "int", hint: "2 with Weekly = every two weeks.",
+      dependsOn: (d) => d.trigger !== "Meter Reading" },
+    { field: "next_due_date", label: "Next due", type: "date", dependsOn: (d) => d.trigger !== "Meter Reading" },
+    { field: "lead_days", label: "Raise the work order days before", type: "int",
+      dependsOn: (d) => d.trigger !== "Meter Reading" },
+    { field: "meter_interval", label: "Every (meter units)", type: "float", hint: "e.g. 250 run hours.",
+      dependsOn: (d) => d.trigger === "Meter Reading" },
+    { field: "next_meter_due", label: "Next due at reading", type: "float",
+      hint: "Blank = the asset's last reading plus the interval.",
+      dependsOn: (d) => d.trigger === "Meter Reading" },
+    { field: "priority", label: "Priority", type: "select", options: PRIORITIES },
+    { field: "assigned_to_user", label: "Assign to", type: "link", linkDoctype: "User" },
+    { field: "vendor", label: "Vendor", type: "link", linkDoctype: "Vendor", linkPropertyScoped: true },
+    { field: "take_room_out_of_order", label: "Take room out of order", type: "check",
+      dependsOn: (d) => !!d.room },
+    { field: "instructions", label: "Instructions / checklist", type: "data" },
+    { field: "active", label: "Active", type: "check" },
+  ],
+  extra: SchedulePanel,
 }
