@@ -1,0 +1,101 @@
+# Push to deploy: every push to develop installs (first time) or updates
+# (after that) the PMS on the Contabo server. Also runs from the Actions tab
+# ("Run workflow"), where you can pick another branch.
+#
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   CONTABO_HOST        the server's IP, e.g. 169.58.107.212
+#   CONTABO_SSH_KEY     private SSH key whose public half is in the server's
+#                       /root/.ssh/authorized_keys
+#   PMS_SITE_NAME       the domain, e.g. pms.yourhotel.com
+#   PMS_ADMIN_EMAIL     admin email (first install only)
+#   PMS_ADMIN_PASSWORD  admin password, 10+ characters (first install only)
+#
+# Own secret names on purpose: the DEPLOY_* secrets drive other workflows in
+# this repo that deploy to the upstream project's servers.
+
+name: Deploy to Contabo
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to deploy
+        default: develop
+        required: true
+
+# one deploy at a time; a newer push waits rather than cutting a build short
+concurrency:
+  group: deploy-contabo
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      HOST: ${{ secrets.CONTABO_HOST }}
+      BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the secrets are set
+        env:
+          KEY: ${{ secrets.CONTABO_SSH_KEY }}
+          SITE: ${{ secrets.PMS_SITE_NAME }}
+        run: |
+          missing=""
+          [ -n "$HOST" ] || missing="$missing CONTABO_HOST"
+          [ -n "$KEY" ]  || missing="$missing CONTABO_SSH_KEY"
+          [ -n "$SITE" ] || missing="$missing PMS_SITE_NAME"
+          if [ -n "$missing" ]; then
+            echo "::error::Add these repository secrets:$missing"
+            exit 1
+          fi
+
+      - name: Set up SSH
+        env:
+          KEY: ${{ secrets.CONTABO_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -T 15 -t ed25519,rsa "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          printf 'Host pms\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 30\n  ServerAliveCountMax 20\n' "$HOST" > ~/.ssh/config
+          ssh pms 'echo "connected to $(hostname)"'
+
+      - name: Deploy ${{ env.BRANCH }}
+        env:
+          SITE: ${{ secrets.PMS_SITE_NAME }}
+          EMAIL: ${{ secrets.PMS_ADMIN_EMAIL }}
+          PASSWORD: ${{ secrets.PMS_ADMIN_PASSWORD }}
+        run: |
+          scp deploy/contabo/deploy-porshi.sh pms:/root/deploy-porshi.sh
+          # settings go over stdin into a root-only file, never on a command line
+          {
+            printf 'SITE_NAME=%q\n' "$SITE"
+            printf 'ADMIN_EMAIL=%q\n' "$EMAIL"
+            printf 'ADMIN_PASSWORD=%q\n' "$PASSWORD"
+            printf 'PORSHI_BRANCH=%q\n' "$BRANCH"
+          } | ssh pms 'umask 077; cat > /root/.pms-deploy.env'
+          ssh pms 'set -a; . /root/.pms-deploy.env; rm -f /root/.pms-deploy.env; set +a; bash /root/deploy-porshi.sh </dev/null'
+
+      - name: Check the site answers
+        env:
+          SITE: ${{ secrets.PMS_SITE_NAME }}
+        run: |
+          for _ in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$SITE/api/method/ping" || true)
+            echo "https://$SITE -> $code"
+            [ "$code" = 200 ] && exit 0
+            sleep 20
+          done
+          echo "::warning::The site did not answer over HTTPS yet. Check DNS points $SITE at $HOST."
+
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy
