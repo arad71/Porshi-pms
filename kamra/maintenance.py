@@ -560,7 +560,7 @@ def generate_preventive_work_orders():
 			continue
 		try:
 			raise_from_schedule(frappe.get_doc("Maintenance Schedule", s.name), today)
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit -- keep one bad schedule from rolling back earlier work
 		except Exception:
 			frappe.db.rollback()
 			frappe.log_error(title=f"Preventive work order not raised: {s.name}")
