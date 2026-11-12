@@ -72,6 +72,9 @@ import {
   HandCoins,
   CalendarClock,
   Scale,
+  Wrench,
+  Cog,
+  CalendarCheck,
 } from "lucide-react"
 
 /** "Night audit" is what most hotels call End of Day; EOD is what they type. */
@@ -192,6 +195,31 @@ export const APPS: AppDef[] = [
         roles: ["Hotel Admin", "System Manager", "Administrator"] },
     ],
     extraPrefixes: ["/ops-sla"],
+  },
+  {
+    id: "maintenance",
+    name: "Maintenance",
+    icon: Wrench,
+    tint: APP_TILE,
+    description: "Work orders, equipment and planned, predictive and statutory maintenance.",
+    roles: [
+      "Maintenance", "Maintenance Supervisor", "Front Desk", "Housekeeping",
+      "Housekeeping Supervisor", "Hotel Admin", "System Manager", "Administrator",
+    ],
+    items: [
+      { to: "/maintenance", label: "Work Orders", icon: Wrench,
+        keywords: ["Maintenance", "Engineering", "Repair", "Breakdown", "Emergency", "Fault",
+                   "Corrective", "Statutory", "Work order"] },
+      { to: "/maintenance-assets", label: "Assets", icon: Cog,
+        keywords: ["Equipment", "Plant", "Meter reading", "Run hours", "Condition", "Asset register"],
+        roles: ["Maintenance", "Maintenance Supervisor", "Hotel Admin", "System Manager", "Administrator"] },
+      { to: "/maintenance-schedules", label: "Planned Maintenance", icon: CalendarCheck,
+        keywords: ["Preventive", "PPM", "PM", "Predictive", "Routine", "Inspection", "Statutory",
+                   "Compliance", "Guest room PM", "Seasonal", "Schedule"],
+        roles: ["Maintenance", "Maintenance Supervisor", "Hotel Admin", "System Manager", "Administrator"] },
+      { to: "/settings/maintenance", label: "Settings", icon: SettingsIcon,
+        roles: ["Maintenance Supervisor", "Hotel Admin", "System Manager", "Administrator"] },
+    ],
   },
   {
     id: "fnb",

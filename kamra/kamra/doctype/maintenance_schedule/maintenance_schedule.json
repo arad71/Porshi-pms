@@ -1,0 +1,273 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:PM-{#####}",
+ "creation": "2026-11-12 09:00:00.000000",
+ "description": "Planned (preventive) maintenance that raises work orders on a cycle.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "property",
+  "title",
+  "category",
+  "asset",
+  "room",
+  "location",
+  "work_type",
+  "column_break_a",
+  "trigger",
+  "frequency",
+  "every",
+  "next_due_date",
+  "meter_interval",
+  "next_meter_due",
+  "lead_days",
+  "active",
+  "sb_work",
+  "priority",
+  "assigned_to_user",
+  "vendor",
+  "take_room_out_of_order",
+  "column_break_b",
+  "instructions",
+  "last_work_order",
+  "last_generated_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "property",
+   "fieldtype": "Link",
+   "label": "Property",
+   "options": "Property",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Becomes the work order subject, e.g. Clean AC filters - 2nd floor."
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "HVAC\nPlumbing\nElectrical\nElevator\nKitchen Equipment\nLaundry Equipment\nPool & Spa\nFire & Safety\nIT & AV\nFurniture & Fixtures\nBuilding\nGrounds\nOther",
+   "default": "Other",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "asset",
+   "fieldtype": "Link",
+   "label": "Asset",
+   "options": "Maintenance Asset"
+  },
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Room"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location"
+  },
+  {
+   "fieldname": "work_type",
+   "fieldtype": "Select",
+   "label": "Work Type",
+   "options": "Preventive\nPredictive\nRoutine\nInspection\nStatutory\nGuest Room PM\nSeasonal",
+   "default": "Preventive",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_a",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trigger",
+   "fieldtype": "Select",
+   "label": "Due By",
+   "options": "Calendar\nMeter Reading",
+   "default": "Calendar",
+   "description": "Calendar: every period. Meter Reading: every so many units on the asset's meter."
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Daily\nWeekly\nMonthly\nQuarterly\nHalf-yearly\nYearly",
+   "default": "Monthly",
+   "in_list_view": 1,
+   "depends_on": "eval:doc.trigger!=\"Meter Reading\""
+  },
+  {
+   "fieldname": "every",
+   "fieldtype": "Int",
+   "label": "Repeat Every",
+   "default": "1",
+   "non_negative": 1,
+   "description": "2 with Weekly = every two weeks."
+  },
+  {
+   "fieldname": "next_due_date",
+   "fieldtype": "Date",
+   "label": "Next Due",
+   "in_list_view": 1,
+   "depends_on": "eval:doc.trigger!=\"Meter Reading\""
+  },
+  {
+   "fieldname": "meter_interval",
+   "fieldtype": "Float",
+   "label": "Every (Meter Units)",
+   "non_negative": 1,
+   "depends_on": "eval:doc.trigger==\"Meter Reading\"",
+   "description": "e.g. 250 run hours."
+  },
+  {
+   "fieldname": "next_meter_due",
+   "fieldtype": "Float",
+   "label": "Next Due At Reading",
+   "depends_on": "eval:doc.trigger==\"Meter Reading\""
+  },
+  {
+   "fieldname": "lead_days",
+   "fieldtype": "Int",
+   "label": "Raise Work Order Days Before",
+   "default": "0",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sb_work",
+   "fieldtype": "Section Break",
+   "label": "Work order"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "Low\nMedium\nHigh\nUrgent",
+   "default": "Medium"
+  },
+  {
+   "fieldname": "assigned_to_user",
+   "fieldtype": "Link",
+   "label": "Assign To",
+   "options": "User"
+  },
+  {
+   "fieldname": "vendor",
+   "fieldtype": "Link",
+   "label": "Vendor",
+   "options": "Vendor"
+  },
+  {
+   "fieldname": "take_room_out_of_order",
+   "fieldtype": "Check",
+   "label": "Take Room Out Of Order",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "Small Text",
+   "label": "Instructions / Checklist"
+  },
+  {
+   "fieldname": "last_work_order",
+   "fieldtype": "Link",
+   "label": "Last Work Order",
+   "options": "Maintenance Work Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_generated_on",
+   "fieldtype": "Date",
+   "label": "Last Generated On",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-12 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Kamra",
+ "name": "Maintenance Schedule",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Hotel Admin",
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Maintenance Supervisor",
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Maintenance"
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Kamra Agent",
+   "write": 1,
+   "create": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "next_due_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

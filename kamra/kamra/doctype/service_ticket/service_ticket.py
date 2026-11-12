@@ -81,7 +81,15 @@ class ServiceTicket(Document):
 				rationale=f"{self.category}: {self.subject}",
 			)
 
-		# a maintenance ticket puts a work item on the room's queue
+		# a maintenance ticket becomes a work order where the property runs
+		# the Maintenance app; completing that order resolves this ticket
+		if self.status == "In Progress" and self.category == "Maintenance":
+			from kamra.maintenance import module_on, work_order_for_ticket
+			if module_on(self.property):
+				work_order_for_ticket(self)
+				return
+
+		# without it, a work item on the room's housekeeping queue as before
 		if (
 			self.status == "In Progress"
 			and self.category == "Maintenance"

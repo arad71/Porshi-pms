@@ -16,13 +16,14 @@ from kamra.install import AGENT_EMAIL
 
 # The apps a property actually runs. The launcher and the sidebar read
 # this so a serviced-apartment operator never sees an empty restaurant.
-ALL_MODULES = ("front-desk", "housekeeping", "operations", "fnb", "events",
-               "revenue", "finance", "booking-engine", "admin")
+ALL_MODULES = ("front-desk", "housekeeping", "operations", "maintenance", "fnb",
+               "events", "revenue", "finance", "booking-engine", "admin")
 
 
 @frappe.whitelist()
 @require_roles("Front Desk", "Finance", "Revenue Manager", "Housekeeping",
-               "Housekeeping Supervisor", "Kamra Agent", "Night Auditor", "F&B Manager")
+               "Housekeeping Supervisor", "Kamra Agent", "Night Auditor", "F&B Manager",
+               "Maintenance")
 def enabled_modules(property: str) -> list:
 	"""Which parts of Kamra this property runs. Empty setting = all of
 	them, so an existing property keeps working untouched."""
@@ -8339,7 +8340,7 @@ def linked_records(doctype: str, name: str):
 
 @frappe.whitelist()
 @require_roles("Front Desk", "Finance", "Revenue Manager", "Housekeeping", "Kamra Agent",
-               "F&B Manager")
+               "F&B Manager", "Maintenance")
 def property_locale(property: str):
 	"""Currency, number locale and tax vocabulary for this property, from its
 	localization pack. Drives the frontend's money formatting and tax dropdowns

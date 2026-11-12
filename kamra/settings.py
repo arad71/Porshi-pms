@@ -310,6 +310,21 @@ MODULES: tuple[Module, ...] = (
 		),
 	),
 	Module(
+		"maintenance", "Maintenance", "Work orders, the asset register and planned maintenance.",
+		editors=("Hotel Admin", "Maintenance Supervisor"), toggle=True,
+		related=(("Work orders", "/maintenance"), ("Assets", "/maintenance-assets"),
+		         ("Planned maintenance", "/maintenance-schedules")),
+		sections=(
+			Section("sla", "Work order deadlines",
+			        "How long a work order may stay open before it is overdue. A planned job is due on its schedule date instead.", (
+				S("maintenance_sla_urgent", "Urgent", "number", 4, min=1, max=720, unit="hours"),
+				S("maintenance_sla_high", "High", "number", 24, min=1, max=720, unit="hours"),
+				S("maintenance_sla_medium", "Medium", "number", 72, min=1, max=2160, unit="hours"),
+				S("maintenance_sla_low", "Low", "number", 168, min=1, max=4320, unit="hours"),
+			)),
+		),
+	),
+	Module(
 		"fnb", "F&B", "Restaurant outlets, the menu and table reservations.",
 		editors=("Hotel Admin", "Finance", "F&B Manager"), toggle=True,
 		related=(("Outlets", "/outlets"), ("Menu", "/menu-items"), ("Ingredients", "/ingredients"),
