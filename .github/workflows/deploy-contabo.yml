@@ -4,8 +4,8 @@
 #
 # Repository secrets (Settings > Secrets and variables > Actions):
 #   CONTABO_HOST        the server's IP, e.g. 169.58.107.212
-#   CONTABO_SSH_KEY     private SSH key whose public half is in the server's
-#                       /root/.ssh/authorized_keys
+#   CONTABO_SSH_KEY     complete, unencrypted private SSH key (actual or
+#                       escaped \n line breaks); public half in authorized_keys
 #   PMS_SITE_NAME       the domain, e.g. pms.yourhotel.com
 #   PMS_ADMIN_EMAIL     admin email (first install only)
 #   PMS_ADMIN_PASSWORD  admin password, 10+ characters (first install only)
@@ -62,8 +62,12 @@ jobs:
           KEY: ${{ secrets.CONTABO_SSH_KEY }}
         run: |
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$KEY" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
+          if ! ssh-keygen -y -P '' -f ~/.ssh/id_deploy >/dev/null 2>&1; then
+            echo "::error::CONTABO_SSH_KEY is not a valid unencrypted private SSH key. Store its complete contents with actual or escaped newline characters."
+            exit 1
+          fi
           ssh-keyscan -T 15 -t ed25519,rsa "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
           printf 'Host pms\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/id_deploy\n  ServerAliveInterval 30\n  ServerAliveCountMax 20\n' "$HOST" > ~/.ssh/config
           ssh pms 'echo "connected to $(hostname)"'
