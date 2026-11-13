@@ -31,6 +31,7 @@ HOTEL_MODULES = (
 STR_MODULES = (
 	"front-desk",
 	"housekeeping",
+	"maintenance",
 	"revenue",
 	"finance",
 	"booking-engine",

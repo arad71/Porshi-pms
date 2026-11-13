@@ -24,6 +24,7 @@ import {
   UtensilsCrossed,
   Webhook,
   type LucideIcon,
+  Wrench,
 } from "lucide-react"
 
 import { Badge } from "../../components/ui/badge"
@@ -65,6 +66,7 @@ const MODULE_ICON: Record<string, LucideIcon> = {
   "front-desk": BedDouble,
   housekeeping: ClipboardCheck,
   operations: ListTodo,
+  maintenance: Wrench,
   fnb: UtensilsCrossed,
   events: CalendarRange,
   revenue: BarChart3,

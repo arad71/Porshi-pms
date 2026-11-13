@@ -383,3 +383,23 @@ class TestMaintenanceTypes(AuditTestCase):
 		by = maintenance.maintenance_summary(PROP_A)["open_by_type"]
 		self.assertGreaterEqual(by.get("Emergency", 0), 1)
 		self.assertGreaterEqual(by.get("Improvement", 0), 1)
+
+
+class TestMaintenanceModuleSwitch(AuditTestCase):
+	def test_patch_turns_maintenance_on_for_saved_lists(self):
+		from kamra.patches.v47 import enable_maintenance_module
+		make_property(PROP_A, enabled_modules="front-desk,admin,housekeeping")
+		make_property(PROP_B, enabled_modules="")
+		enable_maintenance_module.execute()
+		self.assertEqual(frappe.db.get_value("Property", PROP_A, "enabled_modules"),
+		                 "front-desk,admin,housekeeping,maintenance")
+		# empty already means every module
+		self.assertFalse(frappe.db.get_value("Property", PROP_B, "enabled_modules"))
+		# running it again changes nothing
+		enable_maintenance_module.execute()
+		self.assertEqual(frappe.db.get_value("Property", PROP_A, "enabled_modules"),
+		                 "front-desk,admin,housekeeping,maintenance")
+
+	def test_short_term_rentals_get_maintenance(self):
+		from kamra.property_presets import STR_MODULES
+		self.assertIn("maintenance", STR_MODULES)
