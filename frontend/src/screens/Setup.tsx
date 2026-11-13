@@ -61,11 +61,12 @@ const STR_LISTING_DEFAULT: RoomTypeRow = {
 
 /** What can be switched on. The owner picks; anything left off can be
  *  turned on later in Settings. Front desk and admin are always on. */
-const MODULE_CHOICES: { id: string; label: string; blurb: string; info: string; doc: string; locked?: boolean; hotelOnly?: boolean }[] = [
+const MODULE_CHOICES: { id: string; label: string; blurb: string; info: string; doc?: string; locked?: boolean; hotelOnly?: boolean }[] = [
   { id: "front-desk", label: "Front desk and reservations", blurb: "Bookings, check-in and out, folios, the tape chart.", info: "The core of Kamra: taking bookings, checking guests in and out, billing. Always on.", doc: "front-desk", locked: true },
   { id: "booking-engine", label: "Online booking page", blurb: "A simple page guests book and pay on, no other system needed.", info: "A public /book page for your property. Good for direct bookings and small places. You can run it on its own or alongside a channel manager.", doc: "booking-engine" },
   { id: "housekeeping", label: "Housekeeping", blurb: "Room status, cleaning tasks, a phone app for attendants.", info: "Assigns and tracks room cleaning, inspections and lost and found.", doc: "housekeeping" },
   { id: "operations", label: "Guest requests", blurb: "Tickets with deadlines (SLA) and who solved what.", info: "Guest requests become tickets with a promised time. You see who has each and who solved it.", doc: "operations", hotelOnly: true },
+  { id: "maintenance", label: "Maintenance", blurb: "Work orders, equipment and planned upkeep.", info: "Repairs, emergencies, preventive and statutory jobs as work orders. A job can take its room out of order until it is done. Equipment can raise work by meter reading or condition." },
   { id: "fnb", label: "Restaurant and POS", blurb: "Outlets, menus, orders, kitchen tickets, bills.", info: "Run one or more restaurants, bars or room service from Kamra, with kitchen tickets and bills. Turning this on adds a step for outlets, stations and tills.", doc: "fnb", hotelOnly: true },
   { id: "events", label: "Banquets and events", blurb: "Halls, function quotes, menus and event orders.", info: "For properties that host weddings, conferences or parties.", doc: "banquets", hotelOnly: true },
   { id: "revenue", label: "Revenue", blurb: "Rate plans, seasons, best available rate (BAR), rate rules.", info: "BAR is your base rate for a room. Seasons and rate plans raise or lower it by date or by deal.", doc: "revenue" },
@@ -89,7 +90,7 @@ export default function Setup() {
   // How much to ask: quick (region + name, defaults for the rest) or guided
   const [mode, setMode] = useState<"choose" | "quick" | "guided">("choose")
   const [modules, setModules] = useState<string[]>([
-    "front-desk", "housekeeping", "operations", "revenue", "finance", "booking-engine", "admin",
+    "front-desk", "housekeeping", "operations", "maintenance", "revenue", "finance", "booking-engine", "admin",
   ])
   const [wantsChannel, setWantsChannel] = useState(false)
   const [outlets, setOutlets] = useState<{ name: string; type: string }[]>([{ name: "Restaurant", type: "Restaurant" }])
